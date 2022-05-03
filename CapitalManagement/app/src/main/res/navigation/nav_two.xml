@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_two"
+    app:startDestination="@id/addTransactionFragment">
+
+    <fragment
+        android:id="@+id/addTransactionFragment"
+        android:name="com.example.capitalmanagement.AddTransactionFragment"
+        android:label="Add Transaction"
+        tools:layout="@layout/fragment_add_transaction" >
+        <action
+            android:id="@+id/navigateToCategoryListFragment"
+            app:destination="@id/categoryListFragment" />
+        <argument
+            android:name="categoryTitle"
+            android:defaultValue="Choose category"
+            app:argType="string" />
+        <action
+            android:id="@+id/navigateToAccountListFragment"
+            app:destination="@id/accountListFragment" />
+        <argument
+            android:name="accountTitle"
+            app:argType="string"
+            android:defaultValue="Title" />
+        <argument
+            android:name="accountType"
+            android:defaultValue="Type"
+            app:argType="string" />
+        <argument
+            android:name="amount"
+            app:argType="string"
+            android:defaultValue="0" />
+        <argument
+            android:name="description"
+            app:argType="string"
+            android:defaultValue="description" />
+        <argument
+            android:name="date"
+            app:argType="string"
+            android:defaultValue="date" />
+        <argument
+            android:name="time"
+            app:argType="string"
+            android:defaultValue="time" />
+    </fragment>
+    <fragment
+        android:id="@+id/transactionsFragment"
+        android:name="com.example.capitalmanagement.TransactionsFragment"
+        android:label="Transactions"
+        tools:layout="@layout/fragment_transactions" />
+    <fragment
+        android:id="@+id/categoryListFragment"
+        android:name="com.example.capitalmanagement.CategoryListFragment"
+        android:label="Categories"
+        tools:layout="@layout/fragment_category_list" >
+        <argument
+            android:name="categoryType"
+            app:argType="string"
+            android:defaultValue="Expense" />
+        <action
+            android:id="@+id/navigateToAddTransactionFragment"
+            app:destination="@id/addTransactionFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/accountListFragment"
+        android:name="com.example.capitalmanagement.AccountListFragment"
+        android:label="Accounts"
+        tools:layout="@layout/fragment_account_list" >
+        <action
+            android:id="@+id/navigateToAddTransactionFragment"
+            app:destination="@id/addTransactionFragment" />
+        <argument
+            android:name="transactionAmount"
+            app:argType="string" />
+        <argument
+            android:name="transactionDescription"
+            app:argType="string" />
+        <argument android:name="transactionDate"
+            app:argType="string" />
+        <argument
+            android:name="transactionTime"
+            app:argType="string" />
+        <argument
+            android:name="transactionCategory"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/exchangeRatesFragment"
+        android:name="com.example.capitalmanagement.ExchangeRatesFragment"
+        android:label="Exchange rates"
+        tools:layout="@layout/fragment_exchange_rates" />
+</navigation>

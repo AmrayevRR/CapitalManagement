@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ExchangeRatesFragment">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/accounts_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+        android:id="@+id/usd_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/accounts_recycler_view"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="USD" />
+
+    <TextView
+        android:id="@+id/usd_rate_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/usd_text_view"
+        app:layout_constraintStart_toEndOf="@+id/usd_text_view"
+        android:layout_marginLeft="10dp"
+        android:text="450"
+        android:textSize="20sp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/eur_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/usd_text_view"
+        app:layout_constraintStart_toStartOf="@id/usd_text_view"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="EUR" />
+
+    <TextView
+        android:id="@+id/eur_rate_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/eur_text_view"
+        app:layout_constraintStart_toEndOf="@+id/eur_text_view"
+        android:layout_marginLeft="10dp"
+        android:text="500"
+        android:textSize="20sp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/rub_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/eur_text_view"
+        app:layout_constraintStart_toStartOf="@id/eur_text_view"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="RUB" />
+
+    <TextView
+        android:id="@+id/rub_rate_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/rub_text_view"
+        app:layout_constraintStart_toEndOf="@+id/rub_text_view"
+        android:layout_marginLeft="10dp"
+        android:text="6"
+        android:textSize="20sp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/kgs_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/rub_text_view"
+        app:layout_constraintStart_toStartOf="@id/rub_text_view"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="KGS" />
+
+    <TextView
+        android:id="@+id/kgs_rate_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/kgs_text_view"
+        app:layout_constraintStart_toEndOf="@+id/kgs_text_view"
+        android:layout_marginLeft="10dp"
+        android:text="5"
+        android:textSize="20sp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/gbp_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/kgs_text_view"
+        app:layout_constraintStart_toStartOf="@id/kgs_text_view"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="GBP" />
+
+    <TextView
+        android:id="@+id/gbp_rate_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/gbp_text_view"
+        app:layout_constraintStart_toEndOf="@+id/gbp_text_view"
+        android:layout_marginLeft="10dp"
+        android:text="550"
+        android:textSize="20sp"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/cny_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/gbp_text_view"
+        app:layout_constraintStart_toStartOf="@id/gbp_text_view"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="CNY" />
+
+    <TextView
+        android:id="@+id/cny_rate_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@+id/cny_text_view"
+        app:layout_constraintStart_toEndOf="@+id/cny_text_view"
+        android:layout_marginLeft="10dp"
+        android:text="75"
+        android:textSize="20sp"
+        android:textColor="@color/black" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

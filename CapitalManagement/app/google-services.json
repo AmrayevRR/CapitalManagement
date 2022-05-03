@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "203007560979",
+    "project_id": "capitalmanagement-5e856",
+    "storage_bucket": "capitalmanagement-5e856.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:203007560979:android:172a48684f360d34b89ee6",
+        "android_client_info": {
+          "package_name": "com.example.capitalmanagement"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "203007560979-qvi0jsj661cuvp1mlaoknln501dvin21.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq5mWgRCFOUYlLW0fwyOthBVnuk7fl57I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "203007560979-qvi0jsj661cuvp1mlaoknln501dvin21.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

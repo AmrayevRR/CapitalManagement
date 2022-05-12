@@ -25,14 +25,14 @@ import com.example.capitalmanagement.viewModel.MainViewModelFactory
  */
 class ExchangeRatesFragment : Fragment() {
 
-    lateinit var accountsRecyclerView: RecyclerView
+    private lateinit var accountsRecyclerView: RecyclerView
 
-    lateinit var usdRateTextView: TextView
-    lateinit var eurRateTextView: TextView
-    lateinit var rubRateTextView: TextView
-    lateinit var kgsRateTextView: TextView
-    lateinit var gbpRateTextView: TextView
-    lateinit var cnyRateTextView: TextView
+    private lateinit var usdRateTextView: TextView
+    private lateinit var eurRateTextView: TextView
+    private lateinit var rubRateTextView: TextView
+    private lateinit var kgsRateTextView: TextView
+    private lateinit var gbpRateTextView: TextView
+    private lateinit var cnyRateTextView: TextView
 
     private lateinit var  viewModel: ExchangeRatesViewModel
 

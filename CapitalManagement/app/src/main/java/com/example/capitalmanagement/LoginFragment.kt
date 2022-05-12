@@ -9,7 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
+import com.example.capitalmanagement.viewModel.LoginViewModel
+import com.example.capitalmanagement.viewModel.MainViewModelFactory
+import com.example.capitalmanagement.viewModel.RegisterViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -20,9 +25,11 @@ import com.google.firebase.auth.FirebaseAuth
  */
 class LoginFragment : Fragment() {
 
-    lateinit var emailEditText: EditText
-    lateinit var passwordEditText: EditText
-    lateinit var loginButton: Button
+    private lateinit var emailEditText: EditText
+    private lateinit var passwordEditText: EditText
+    private lateinit var loginButton: Button
+
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,30 +45,70 @@ class LoginFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_login, container, false)
 
+        initUI(view)
+        bindViewModel()
+
+        return view
+    }
+
+    private fun initUI(view: View) {
         emailEditText = view.findViewById(R.id.email_edit_text)
         passwordEditText = view.findViewById(R.id.password_edit_text)
         loginButton = view.findViewById(R.id.login_button)
 
+        initListener()
+    }
+
+    private fun initListener() {
         loginButton.setOnClickListener {
             Log.d("Login", "Log in button clicked")
 
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(emailEditText.text.toString(), passwordEditText.text.toString())
-                .addOnCompleteListener {
-                    if (!it.isSuccessful) return@addOnCompleteListener
+            val email = emailEditText.text.toString()
+            val password = passwordEditText.text.toString()
 
-                    // else if successful
-                    Log.d("Login", "Successfully login user with uid: ${it.result.user?.uid}")
+            if (email.isEmpty() || password.isEmpty()) {
+                return@setOnClickListener
+            }
 
-                    val intent = Intent(requireContext(), SecondActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(intent)
-                }
-                .addOnFailureListener {
-                    Log.d("Login", "Failed to create user: ${it.message}")
-                }
+            viewModel.login(email, password)
         }
+    }
 
-        return view
+    private fun bindViewModel() {
+        initViewModel()
+        observeData()
+    }
+
+    private fun initViewModel() {
+        val factory = MainViewModelFactory()
+        viewModel = ViewModelProvider(this, factory).get(LoginViewModel::class.java)
+    }
+
+    private fun observeData() {
+        viewModel.isLoged.observe(requireActivity(), Observer {
+            if (it == true) {
+                val intent = Intent(requireContext(), SecondActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
+        })
+    }
+
+    private fun login() {
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(emailEditText.text.toString(), passwordEditText.text.toString())
+            .addOnCompleteListener {
+                if (!it.isSuccessful) return@addOnCompleteListener
+
+                // else if successful
+                Log.d("Login", "Successfully login user with uid: ${it.result.user?.uid}")
+
+                val intent = Intent(requireContext(), SecondActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
+            .addOnFailureListener {
+                Log.d("Login", "Failed to create user: ${it.message}")
+            }
     }
 
     companion object {

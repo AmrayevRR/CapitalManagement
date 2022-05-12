@@ -16,6 +16,12 @@ class MainViewModelFactory: ViewModelProvider.Factory {
         else if (modelClass.isAssignableFrom(ExchangeRatesViewModel::class.java)){
             return ExchangeRatesViewModel() as T
         }
+        else if (modelClass.isAssignableFrom(RegisterViewModel::class.java)){
+            return RegisterViewModel() as T
+        }
+        else if (modelClass.isAssignableFrom(LoginViewModel::class.java)){
+            return LoginViewModel() as T
+        }
         throw IllegalArgumentException ("UnknownViewModel")
     }
 }

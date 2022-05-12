@@ -11,10 +11,15 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
 import com.example.capitalmanagement.model.Account
 import com.example.capitalmanagement.model.Transaction
 import com.example.capitalmanagement.model.User
+import com.example.capitalmanagement.viewModel.MainViewModelFactory
+import com.example.capitalmanagement.viewModel.RegisterViewModel
+import com.example.capitalmanagement.viewModel.TransactionsViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DatabaseReference
@@ -31,11 +36,13 @@ class RegisterFragment : Fragment() {
 
     private lateinit var auth: FirebaseAuth
 
-    lateinit var alreadyHaveAnAccountTextView: TextView
-    lateinit var usernameEditText: EditText
-    lateinit var emailEditText: EditText
-    lateinit var passwordEditText: EditText
-    lateinit var registerButton: Button
+    private lateinit var alreadyHaveAnAccountTextView: TextView
+    private lateinit var usernameEditText: EditText
+    private lateinit var emailEditText: EditText
+    private lateinit var passwordEditText: EditText
+    private lateinit var registerButton: Button
+
+    private lateinit var viewModel: RegisterViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,20 +69,50 @@ class RegisterFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_register, container, false)
 
+        initUI(view)
+        bindViewModel()
+
+        return view
+    }
+
+    private fun initUI(view: View) {
         usernameEditText = view.findViewById(R.id.username_edit_text)
         emailEditText = view.findViewById(R.id.email_edit_text)
         passwordEditText = view.findViewById(R.id.password_edit_text)
         alreadyHaveAnAccountTextView = view.findViewById(R.id.alredy_have_an_account_text_view)
         registerButton = view.findViewById(R.id.register_button)
 
+        initListeners(view)
+    }
+
+    private fun initListeners(view: View) {
         alreadyHaveAnAccountTextView.setOnClickListener {
             Navigation.findNavController(view).navigate(R.id.loginFragment)
         }
         registerButton.setOnClickListener {
             performRegister()
         }
+    }
 
-        return view
+    private fun bindViewModel() {
+        initViewModel()
+        observeData()
+    }
+
+    private fun initViewModel() {
+        val factory = MainViewModelFactory()
+        viewModel = ViewModelProvider(this, factory).get(RegisterViewModel::class.java)
+        viewModel.context = requireContext()
+    }
+
+    private fun observeData() {
+        viewModel.isRegistered.observe(requireActivity(), Observer {
+            if (it == true) {
+                val intent = Intent(requireContext(), SecondActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
+        })
     }
 
     private fun performRegister() {
@@ -86,59 +123,8 @@ class RegisterFragment : Fragment() {
             return
         }
 
-        // Firebase Authentication to create a user with email and password
-        FirebaseAuth.getInstance().createUserWithEmailAndPassword(emailEditText.text.toString(), passwordEditText.text.toString())
-            .addOnCompleteListener {
-                if (!it.isSuccessful) return@addOnCompleteListener
+        viewModel.register(emailEditText.text.toString(), passwordEditText.text.toString(), usernameEditText.text.toString())
 
-                // else if successful
-                Log.d("Register", "Successfully created user with uid: ${it.result.user?.uid}")
-                saveUserToFirebaseDatabase()
-            }
-            .addOnFailureListener{
-                Log.d("Register", "Failed to create user: ${it.message}")
-                Toast.makeText(requireContext(), "Failed to create user: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun saveUserToFirebaseDatabase() {
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid")
-
-        val user = User(uid.toString(), emailEditText.text.toString(), usernameEditText.text.toString())
-
-        ref.setValue(user)
-            .addOnSuccessListener {
-                Log.d("Register", "Finally we saved the user to Firebase Database")
-
-                addCashAccount()
-
-                val intent = Intent(requireContext(), SecondActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
-            }
-            .addOnFailureListener {
-                Log.d("Register", "Failed to save user to Firebase Database: ${it.message}")
-                Toast.makeText(requireContext(), "Failed to save user to Firebase Database: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun addCashAccount() {
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid/accounts")
-        val childRef: DatabaseReference = ref.child("${ref.push().key}")
-
-        val account = Account("Cash", "cash", 0)
-
-        childRef.setValue(account)
-            .addOnSuccessListener {
-                Log.d("Add account", "Finally we saved the account to Firebase Database")
-                Toast.makeText(requireContext(), "Finally we saved the account to Firebase Database", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener {
-                Log.d("Add account", "Failed to save account to Firebase Database: ${it.message}")
-                Toast.makeText(requireContext(), "Failed to save account to Firebase Database: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
     }
 
     companion object {

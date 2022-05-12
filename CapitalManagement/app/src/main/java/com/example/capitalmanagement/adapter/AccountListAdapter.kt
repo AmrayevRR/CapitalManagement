@@ -23,7 +23,7 @@ class AccountListAdapter(
     accounts: List<Account>
 ) :
     ArrayAdapter<Account>(mContext, mLayoutResourceId, accounts) {
-    private val account: MutableList<Account> = ArrayList(accounts)
+    private var account: MutableList<Account> = ArrayList(accounts)
     private var allCategories: List<Account> = ArrayList(accounts)
 
     override fun getCount(): Int {
@@ -47,6 +47,11 @@ class AccountListAdapter(
             e.printStackTrace()
         }
         return convertView!!
+    }
+
+    fun update(data: List<Account>) {
+        account = data.toMutableList()
+        notifyDataSetChanged()
     }
 
 

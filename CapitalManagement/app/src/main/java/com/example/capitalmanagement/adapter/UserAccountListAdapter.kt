@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.capitalmanagement.R
 import com.example.capitalmanagement.model.Account
 
-class UserAccountListAdapter(val accounts: ArrayList<Account>, val context: Context): RecyclerView.Adapter<UserAccountListAdapter.AccountViewHolder>() {
+class UserAccountListAdapter(var accounts: ArrayList<Account>, val context: Context): RecyclerView.Adapter<UserAccountListAdapter.AccountViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
@@ -39,6 +39,11 @@ class UserAccountListAdapter(val accounts: ArrayList<Account>, val context: Cont
 
     override fun getItemCount(): Int {
         return accounts.size
+    }
+
+    fun update(data: ArrayList<Account>) {
+        accounts = data
+        notifyDataSetChanged()
     }
 
     class AccountViewHolder(itemView: View, context: Context): RecyclerView.ViewHolder(itemView) {

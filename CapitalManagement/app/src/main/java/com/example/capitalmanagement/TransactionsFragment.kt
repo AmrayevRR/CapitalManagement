@@ -1,21 +1,18 @@
 package com.example.capitalmanagement
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.capitalmanagement.adapter.TransactionListAdapter
 import com.example.capitalmanagement.model.Transaction
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.getValue
+import com.example.capitalmanagement.viewModel.TransactionsViewModel
+import com.example.capitalmanagement.viewModel.MainViewModelFactory
 
 
 /**
@@ -25,8 +22,10 @@ import com.google.firebase.database.ktx.getValue
  */
 class TransactionsFragment : Fragment() {
 
-    lateinit var transactionsRecyclerView: RecyclerView
-    lateinit var transactions: ArrayList<Transaction>
+    private lateinit var transactionsRecyclerView: RecyclerView
+    private lateinit var transactionListAdapter: TransactionListAdapter
+
+    private lateinit var  viewModel: TransactionsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,48 +41,40 @@ class TransactionsFragment : Fragment() {
 
         transactionsRecyclerView = view.findViewById(R.id.transactions_recycler_view)
 
+        bindViewModel()
         initTransactionsRecyclerView()
 
         return view
     }
 
-    private fun initTransactionsRecyclerView() {
-        transactions = ArrayList<Transaction>()
-        transactions.add(Transaction("Loading", 0, "", "", ""))
-        fetchTransactions()
+    private fun bindViewModel() {
+        initViewModel()
+        observeData()
+        if (viewModel.newTransactions.isEmpty()) {
+            viewModel.fetchTransactions()
+        }
+    }
 
-        val transactionListAdapter = TransactionListAdapter(transactions, requireContext())
+    private fun initViewModel() {
+        val factory = MainViewModelFactory()
+        viewModel = ViewModelProvider(this, factory).get(TransactionsViewModel::class.java)
+    }
+
+    private fun observeData() {
+        viewModel.transactions.observe(requireActivity(), Observer {
+            transactionListAdapter.update(it)
+        })
+    }
+
+    private fun initTransactionsRecyclerView() {
+        var transactions = ArrayList<Transaction>()
+        transactions.add(Transaction("Loading", 0, "", "", ""))
+
+        transactionListAdapter = TransactionListAdapter(transactions, requireContext())
         val layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         transactionsRecyclerView.adapter = transactionListAdapter
         transactionsRecyclerView.layoutManager = layoutManager
-    }
-
-    private fun fetchTransactions() {
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid/transactions")
-
-        val transactions = ArrayList<Transaction>()
-
-        ref.addListenerForSingleValueEvent(object: ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.children.forEach {
-                    Log.d("Transactions", it.toString())
-                    val transaction = it.getValue(Transaction::class.java)
-                    Log.d("Transactions", "${transaction?.category} : ${transaction?.amount}")
-                    if (transaction != null) {
-                        transactions.add(0, transaction)
-//                        transactions.add(transaction)
-                    }
-                }
-                val transactionListAdapter = TransactionListAdapter(transactions, requireContext())
-                transactionsRecyclerView.adapter = transactionListAdapter
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
-        })
     }
 
     companion object {

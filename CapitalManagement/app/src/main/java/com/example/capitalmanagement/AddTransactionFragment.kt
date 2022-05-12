@@ -3,29 +3,25 @@ package com.example.capitalmanagement
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.navigation.Navigation
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.navArgs
 import com.example.capitalmanagement.adapter.AccountListAdapter
 import com.example.capitalmanagement.adapter.CategoryListAdapter
-import com.example.capitalmanagement.adapter.UserAccountListAdapter
-import com.example.capitalmanagement.databinding.ActivitySecondBinding
 import com.example.capitalmanagement.databinding.FragmentAddTransactionBinding
 import com.example.capitalmanagement.model.Account
 import com.example.capitalmanagement.model.Category
 import com.example.capitalmanagement.model.Transaction
-import com.example.capitalmanagement.model.User
+import com.example.capitalmanagement.viewModel.AddTransactionViewModel
+import com.example.capitalmanagement.viewModel.MainViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import java.text.SimpleDateFormat
@@ -39,13 +35,15 @@ import java.util.*
  */
 class AddTransactionFragment : Fragment(), View.OnClickListener {
 
-    var transactionType = "Expense"
+    private var transactionType = "Expense"
     private var selectedAccountId: String? = null
 
     private var _binding: FragmentAddTransactionBinding? = null
     private val binding get() = _binding!!
 
-    val args: AddTransactionFragmentArgs by navArgs()
+    private lateinit var  viewModel: AddTransactionViewModel
+
+    private val args: AddTransactionFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,18 +60,42 @@ class AddTransactionFragment : Fragment(), View.OnClickListener {
         _binding = FragmentAddTransactionBinding.inflate(inflater, container, false)
 
         initUI()
-
         initToggleGroup()
-
         initTimePicker()
-
         initDatePicker()
-
         initCategoryChooseButton()
-
         initAccountChooseButton()
+        bindViewModel()
 
         return binding.root
+    }
+
+    private fun bindViewModel() {
+        initViewModel()
+        observeAccountsData()
+        if (viewModel.newAccounts.isEmpty()) {
+            viewModel.fetchAccounts()
+        }
+    }
+
+    private fun initViewModel() {
+        val factory = MainViewModelFactory()
+        viewModel = ViewModelProvider(this, factory).get(AddTransactionViewModel::class.java)
+        viewModel.context = requireContext()
+    }
+
+    private fun observeAccountsData() {
+        viewModel.accounts.observe(requireActivity(), androidx.lifecycle.Observer {
+            val adapter = binding.accountAutoCompleteTextView.adapter as AccountListAdapter
+            adapter.update(it)
+            val autoCompleteTextView = binding.accountAutoCompleteTextView
+            autoCompleteTextView.setOnItemClickListener { parent, view, position, id ->
+                var selectedAccount = parent.getItemAtPosition(position) as Account
+                viewModel.selectedAccountId = viewModel.accountsId[position]
+//                selectedAccountId = viewModel.accountsId[position]
+                autoCompleteTextView.setText(selectedAccount.title)
+            }
+        })
     }
 
     private fun initUI() {
@@ -163,34 +185,9 @@ class AddTransactionFragment : Fragment(), View.OnClickListener {
         val accounts = ArrayList<Account>()
         val accountsId = ArrayList<String>()
 
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid/accounts")
-
-        ref.addListenerForSingleValueEvent(object: ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.children.forEach {
-                    Log.d("Accounts", it.toString())
-                    val account = it.getValue(Account::class.java)
-                    Log.d("Accounts", "${account?.title} : ${account?.type} : ${account?.amount}")
-                    if (account != null) {
-                        accounts.add(account)
-                        accountsId.add(it.key.toString())
-                    }
-                }
-                val arrayAdapter = AccountListAdapter(requireContext(), R.layout.dropdown_item, accounts)
-                val autoCompleteTextView = binding.accountAutoCompleteTextView
-                autoCompleteTextView.setAdapter(arrayAdapter)
-                autoCompleteTextView.setOnItemClickListener { parent, view, position, id ->
-                    var selectedAccount = parent.getItemAtPosition(position) as Account
-                    selectedAccountId = accountsId[position]
-                    autoCompleteTextView.setText(selectedAccount.title)
-                }
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
-        })
+        val arrayAdapter = AccountListAdapter(requireContext(), R.layout.dropdown_item, accounts)
+        val autoCompleteTextView = binding.accountAutoCompleteTextView
+        autoCompleteTextView.setAdapter(arrayAdapter)
     }
 
     override fun onClick(v: View) {
@@ -209,7 +206,14 @@ class AddTransactionFragment : Fragment(), View.OnClickListener {
                 }
             }
             R.id.add_button -> {
-                addTransaction()
+                val transaction = Transaction(
+                    binding.categoryAutoCompleteTextView.text.toString(),
+                    binding.amountTextView.text.toString().toInt(),
+                    binding.descriptionEditText.text.toString(),
+                    "${binding.dateButton.text} ${binding.timeButton.text}",
+                    viewModel.selectedAccountId!!
+                )
+                viewModel.addTransaction(transaction)
             }
             R.id.delete_button -> {
                 val amountTextView = binding.amountTextView
@@ -272,66 +276,7 @@ class AddTransactionFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    private fun addTransaction() {
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid/transactions")
-//        val childRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("/transactions/$uid/${ref.push().key}")
-        val childRef: DatabaseReference = ref.child("${ref.push().key}")
 
-        val transaction = Transaction(
-            binding.categoryAutoCompleteTextView.text.toString(),
-            binding.amountTextView.text.toString().toInt(),
-            binding.descriptionEditText.text.toString(),
-            "${binding.dateButton.text} ${binding.timeButton.text}",
-            selectedAccountId!!
-        )
-
-        childRef.setValue(transaction)
-            .addOnSuccessListener {
-                Log.d("Add transaction", "Finally we saved the transaction to Firebase Database")
-                Toast.makeText(requireContext(), "Finally we saved the transaction to Firebase Database", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener {
-                Log.d("Add transaction", "Failed to save transaction to Firebase Database: ${it.message}")
-                Toast.makeText(requireContext(), "Failed to save transaction to Firebase Database: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
-
-        updateAccount()
-    }
-
-    private fun updateAccount() {
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid/accounts/$selectedAccountId")
-
-        var account: Account?
-
-        // Fetch account
-        ref.addListenerForSingleValueEvent(object: ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                Log.d("Account", dataSnapshot.toString())
-                account = dataSnapshot.getValue(Account::class.java)
-                Log.d("Accounts", "${account?.title} : ${account?.amount}")
-
-                // Increase account's amount
-                account!!.amount += binding.amountTextView.text.toString().toInt()
-
-                // Update account
-                ref.setValue(account)
-                    .addOnSuccessListener {
-                        Log.d("Add transaction", "Finally we saved the transaction to Firebase Database")
-                        Toast.makeText(requireContext(), "Finally we saved the transaction to Firebase Database", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener {
-                        Log.d("Add transaction", "Failed to save transaction to Firebase Database: ${it.message}")
-                        Toast.makeText(requireContext(), "Failed to save transaction to Firebase Database: ${it.message}", Toast.LENGTH_SHORT).show()
-                    }
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
-        })
-    }
 
     companion object {
 

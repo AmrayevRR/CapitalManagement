@@ -1,31 +1,21 @@
 package com.example.capitalmanagement
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.capitalmanagement.adapter.TransactionListAdapter
 import com.example.capitalmanagement.adapter.UserAccountListAdapter
 import com.example.capitalmanagement.api.ExchangeApiService
 import com.example.capitalmanagement.model.Account
 import com.example.capitalmanagement.model.ExchangePost
-import com.example.capitalmanagement.model.Transaction
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.capitalmanagement.viewModel.ExchangeRatesViewModel
+import com.example.capitalmanagement.viewModel.MainViewModelFactory
 
 
 /**
@@ -36,7 +26,6 @@ import retrofit2.Response
 class ExchangeRatesFragment : Fragment() {
 
     lateinit var accountsRecyclerView: RecyclerView
-    lateinit var accounts: ArrayList<Account>
 
     lateinit var usdRateTextView: TextView
     lateinit var eurRateTextView: TextView
@@ -45,9 +34,7 @@ class ExchangeRatesFragment : Fragment() {
     lateinit var gbpRateTextView: TextView
     lateinit var cnyRateTextView: TextView
 
-    lateinit var exchangeApiService: ExchangeApiService
-
-    lateinit var exchangePost: ExchangePost
+    private lateinit var  viewModel: ExchangeRatesViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,17 +51,14 @@ class ExchangeRatesFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_exchange_rates, container, false)
 
         initUI(view)
-
-        accountsRecyclerView = view.findViewById(R.id.accounts_recycler_view)
-
         initAccountsRecyclerView()
-
-        fetchExchangePost()
+        bindViewModel()
 
         return view
     }
 
     private fun initUI(view: View) {
+        accountsRecyclerView = view.findViewById(R.id.accounts_recycler_view)
         usdRateTextView = view.findViewById(R.id.usd_rate_text_view)
         eurRateTextView = view.findViewById(R.id.eur_rate_text_view)
         rubRateTextView = view.findViewById(R.id.rub_rate_text_view)
@@ -83,23 +67,7 @@ class ExchangeRatesFragment : Fragment() {
         cnyRateTextView = view.findViewById(R.id.cny_rate_text_view)
     }
 
-    private fun fetchExchangePost() {
-        exchangeApiService = MyApplication.instance.getExchangeApiService()!!
-
-        exchangeApiService.getExchangePost().enqueue(object: Callback<ExchangePost> {
-            override fun onFailure(call: Call<ExchangePost>, t: Throwable) {
-                Log.e("Error", t.message.toString())
-            }
-
-            override fun onResponse(call: Call<ExchangePost>, response: Response<ExchangePost>) {
-                exchangePost = response.body()!!
-                Log.d("Response", response.body().toString())
-                configureRates()
-            }
-        })
-    }
-
-    private fun configureRates() {
+    private fun configureRates(exchangePost: ExchangePost) {
         usdRateTextView.text = roundDouble(exchangePost.rates.KZT / exchangePost.rates.USD).toString()
         eurRateTextView.text = roundDouble(exchangePost.rates.KZT).toString()
         rubRateTextView.text = roundDouble(exchangePost.rates.KZT / exchangePost.rates.RUB).toString()
@@ -113,9 +81,8 @@ class ExchangeRatesFragment : Fragment() {
     }
 
     private fun initAccountsRecyclerView() {
-        accounts = ArrayList<Account>()
+        var accounts = ArrayList<Account>()
         accounts.add(Account("Cash", "caspi", 20000))
-        fetchAccounts()
 
         val accountListAdapter = UserAccountListAdapter(accounts, requireContext())
         val layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -124,29 +91,31 @@ class ExchangeRatesFragment : Fragment() {
         accountsRecyclerView.layoutManager = layoutManager
     }
 
-    private fun fetchAccounts() {
-        val uid = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid/accounts")
+    private fun bindViewModel() {
+        initViewModel()
+        observeAccountsData()
+        observeExchangeData()
+        if (viewModel.newAccounts.isEmpty()) {
+            viewModel.fetchAccounts()
+        }
+        viewModel.fetchExchangePost()
+    }
 
-        val accounts = ArrayList<Account>()
+    private fun initViewModel() {
+        val factory = MainViewModelFactory()
+        viewModel = ViewModelProvider(this, factory).get(ExchangeRatesViewModel::class.java)
+    }
 
-        ref.addListenerForSingleValueEvent(object: ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                dataSnapshot.children.forEach {
-                    Log.d("Accounts", it.toString())
-                    val account = it.getValue(Account::class.java)
-                    Log.d("Accounts", "${account?.title} : ${account?.amount}")
-                    if (account != null) {
-                        accounts.add(account)
-                    }
-                }
-                val accountListAdapter = UserAccountListAdapter(accounts, requireContext())
-                accountsRecyclerView.adapter = accountListAdapter
-            }
+    private fun observeAccountsData() {
+        viewModel.accounts.observe(requireActivity(), Observer {
+            val adapter = accountsRecyclerView.adapter as UserAccountListAdapter
+            adapter.update(it)
+        })
+    }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
+    private fun observeExchangeData() {
+        viewModel.exchangePost.observe(requireActivity(), Observer {
+            configureRates(it!!)
         })
     }
 

@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.capitalmanagement.R
 import com.example.capitalmanagement.model.Transaction
 
-class TransactionListAdapter(val transactions: ArrayList<Transaction>, val context: Context): RecyclerView.Adapter<TransactionListAdapter.TransactionViewHolder>() {
+class TransactionListAdapter(var transactions: ArrayList<Transaction>, val context: Context): RecyclerView.Adapter<TransactionListAdapter.TransactionViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
@@ -81,6 +81,11 @@ class TransactionListAdapter(val transactions: ArrayList<Transaction>, val conte
 
     override fun getItemCount(): Int {
         return transactions.size
+    }
+
+    fun update(data: ArrayList<Transaction>) {
+        transactions = data
+        notifyDataSetChanged()
     }
 
     class TransactionViewHolder(itemView: View, context: Context): RecyclerView.ViewHolder(itemView) {
